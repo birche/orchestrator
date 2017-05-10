@@ -1,0 +1,7 @@
+**/*.user
+**/bin/*
+**/obj/*
+**/project.lock.json
+**/.vs
+packages/*
+.vscode/*
