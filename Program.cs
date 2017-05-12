@@ -23,7 +23,8 @@ namespace process_tracker
 
                     while(true)
                     {
-                        Console.WriteLine(moduleName + " is alive ");   
+                        const double MB = 1024.0*1024.0;
+                        Console.WriteLine(moduleName + " is alive. Private memory: " + process.PrivateMemorySize64/MB + "MB, Peak paged memory: " + process.PeakPagedMemorySize64/MB+ "MB");   
                         if(process.HasExited)
                         {
                             Console.WriteLine(moduleName + " exited at " +  process.ExitTime);   
