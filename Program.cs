@@ -10,8 +10,8 @@ namespace process_tracker
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
-            Process pInfo = Process.Start("notepad");
-            Process pInfo2 = Process.Start("notepad");
+            Process pInfo = Process.Start("top");
+            Process pInfo2 = Process.Start("top");
 
             List<Task> list = new List<Task>();
 
@@ -24,7 +24,7 @@ namespace process_tracker
                     while(true)
                     {
                         const double MB = 1024.0*1024.0;
-                        Console.WriteLine(moduleName + " is alive. Private memory: " + process.PrivateMemorySize64/MB + "MB, Peak paged memory: " + process.PeakPagedMemorySize64/MB+ "MB");   
+                        Console.WriteLine(moduleName + " with pid " + id + " is alive. Private memory: " + process.PrivateMemorySize64/MB + "MB, Peak paged memory: " + process.PeakPagedMemorySize64/MB+ "MB");   
                         if(process.HasExited)
                         {
                             Console.WriteLine(moduleName + " exited at " +  process.ExitTime);   
