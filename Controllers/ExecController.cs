@@ -55,8 +55,9 @@ namespace process_tracker.Controllers
         [HttpGet(nameof(IsReady))]
         public bool IsReady(string applicationId)
         {
-            Console.WriteLine("isReady:" + applicationId);
+            
             Uri uri = m_Exec.GetIsAliveUri(applicationId);
+            Console.WriteLine("isReady:" + applicationId + " using " + uri.ToString());
             HttpWebRequest webRequest = WebRequest.CreateHttp(uri);
             var response = (HttpWebResponse) webRequest.GetResponse();
             return response.StatusCode == HttpStatusCode.OK;
