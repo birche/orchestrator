@@ -23,5 +23,6 @@ namespace process_tracker.Kernel
         public bool SupportsIsReadyUri => !string.IsNullOrEmpty(IsReadyUri?.Trim()); 
         public string IsReadyUri { get; set; }
 
+        public bool RestartOnUnexpectedDeath => true;
     }
 }

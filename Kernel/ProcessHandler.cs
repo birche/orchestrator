@@ -11,8 +11,6 @@ namespace process_tracker.Kernel
    
     static class ProcessHandler
     {
-
-  
         public static IEnumerable<(Task,Process)> StartProcesses(params ProcessStartInfo[] startInfos)
         {
             foreach (ProcessStartInfo processStartInfo in startInfos)
@@ -38,7 +36,7 @@ namespace process_tracker.Kernel
                                         process.PeakPagedMemorySize64 / MB + "MB");
                     if (process.HasExited)
                     {
-                        Console.WriteLine(moduleName + " exited at " + process.ExitTime);
+                        // Console.WriteLine(moduleName + " exited at " + process.ExitTime);
                         break;
                     }
 

@@ -92,8 +92,21 @@ namespace process_tracker.Kernel
             ApplicationDescriptor descriptor = GetApplicationDescriptor(applicationId);
             ProcessStartInfo pInfo = GenerateProcessStartInfo(descriptor);
             var (task, process) = ProcessHandler.StartProcess(pInfo);
+            process.EnableRaisingEvents = true;
+            string moduleName = process.MainModule.ModuleName;
+            process.Exited += (_, __) => {
+                Console.WriteLine("Check that this event works on linux!!!!");
+                Console.WriteLine(moduleName + " exited at " + process.ExitTime);
+                if(descriptor.RestartOnUnexpectedDeath)
+                {
+                    ApplicationInfo aInfo;
+                    m_RunningApplications.TryRemove(applicationId, out aInfo);
+                    Start(applicationId);
+                }
+            };
             m_RunningApplications.TryAdd(descriptor.ApplicationId, new ApplicationInfo { Descriptor = descriptor, Process = process, Task = task });
         }
+
 
         public void Stop(string applicationId)
         {
@@ -101,7 +114,7 @@ namespace process_tracker.Kernel
             if (!aInfo?.IsRunning()??false)
                 return;
             aInfo.Process.Kill();
-            m_RunningApplications.TryRemove(applicationId, out aInfo);
+            
         }
 
         public static bool IsStarting(string applicationId)
