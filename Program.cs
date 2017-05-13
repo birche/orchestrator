@@ -1,53 +1,37 @@
-﻿using System;
-using System.Diagnostics;
+﻿using Microsoft.AspNetCore.Hosting;
+using System.IO;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 
 namespace process_tracker
 {
-    class Program
+    partial class Program
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
-            ProcessStartInfo startInfor = new ProcessStartInfo("/var/storage/repo/dotnet/dotnet", "AutoTransfer.dll");
-            startInfor.WorkingDirectory = "/var/storage/repo/autoupdateserver/netcoreapp2.0/linux-arm/publish";
-            Process pInfo = Process.Start(startInfor);
+            IWebHost host = new WebHostBuilder()
+                .UseKestrel()
+                .UseContentRoot(Directory.GetCurrentDirectory())
+                .UseStartup<Startup>()
+                .UseUrls("http://*:5000")
+                .Build();
 
-            List<Task> list = new List<Task>();
-            int count = 0;
-            Process []processes ={pInfo};
-            foreach (var process in processes) {
-                Task t = Task.Run( async () => {
-                    string moduleName = process.MainModule.ModuleName;
-                    int id = process.Id;
+            host.Run();
 
-                
-                    while(true)
-                    {
-                        if (count++ == 20)
-                        {
-                            process.Kill();
-                        }
 
-                        Console.WriteLine("Count =" + count);
+            var processDescriptor = new ApplicationDescriptor
+            {
+                ApplicationId = "AutoUpdateServer",
+                CommandLine = "/var/storage/repo/dotnet/dotnet",
+                CommandLineParams = new[] { "AutoTransfer.dll" },
+                RelativeDirectory = "autoupdateserver/netcoreapp2.0/linux-arm/publish"
+            };
 
-                        const double MB = 1; //1024.0*1024.0;
-                        Console.WriteLine(moduleName + " with pid " + id + " is alive. Private memory: " + process.PrivateMemorySize64/MB + "MB, Peak paged memory: " + process.PeakPagedMemorySize64/MB+ "MB");   
-                        if(process.HasExited)
-                        {
-                            Console.WriteLine(moduleName + " exited at " +  process.ExitTime);   
-                            break;
-                        }
-
-                        await Task.Delay(2000);
-                    }
-                });
-                list.Add(t);
-            }
-
-            Task.WaitAll(list.ToArray());
+            Exec exec = new Exec();
+            exec.Handle(processDescriptor );
             
+            TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
+            tcs.Task.Wait();
         }
     }
 }
