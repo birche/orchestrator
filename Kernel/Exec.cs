@@ -14,6 +14,8 @@ namespace process_tracker.Kernel
         private static readonly ConcurrentDictionary<string, ApplicationDescriptor> m_InstalledApplications = new ConcurrentDictionary<string, ApplicationDescriptor>();
         private static readonly ConcurrentDictionary<string, ApplicationInfo> m_RunningApplications = new ConcurrentDictionary<string, ApplicationInfo>();
 
+        private readonly IApplicationRepository m_ApplicationRepository;
+
         internal class ApplicationInfo
         {
             public ApplicationDescriptor Descriptor { get; set; }
@@ -28,24 +30,20 @@ namespace process_tracker.Kernel
         public Exec(IApplicationRepository repo)
         {
 
-            var installedApplications = repo.GetAllApplications();
+            m_ApplicationRepository = repo;
+            ApplicationDescriptor[] installedApplications = m_ApplicationRepository.GetAllApplications();
 
-
-            foreach (var applicaiton in installedApplications)
+            foreach (ApplicationDescriptor application in installedApplications)
             {
                 try
                 {
-                    Install(applicaiton);
+                    Install(application);
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine(e.Message);
                 }
             }
-
-        
-
-          
         }
 
         public void Install(ApplicationDescriptor descriptor)
@@ -56,11 +54,9 @@ namespace process_tracker.Kernel
         private ProcessStartInfo GenerateProcessStartInfo(ApplicationDescriptor applicationDescriptor)
         {
             var processStartInfo = new ProcessStartInfo(applicationDescriptor.CommandLine, string.Join(" ", applicationDescriptor.CommandLineParams));
-            processStartInfo.WorkingDirectory = Path.Combine("/var/storage/repo", applicationDescriptor.RelativeDirectory);
+            processStartInfo.WorkingDirectory = Path.Combine(m_ApplicationRepository.RootPath, applicationDescriptor.RelativeDirectory);
             return processStartInfo;
         }
-
-      
 
         private static ApplicationInfo GetRunningApplicationInfo(string applicationId)
         {
@@ -68,7 +64,6 @@ namespace process_tracker.Kernel
             m_RunningApplications.TryGetValue(applicationId, out result);
             return result;
         }
-
 
         public void ConfigureRunOnStartup(string applicationId, bool startOnReboot)
         {
@@ -106,6 +101,7 @@ namespace process_tracker.Kernel
             if (!aInfo?.IsRunning()??false)
                 return;
             aInfo.Process.Kill();
+            m_RunningApplications.TryRemove(applicationId, out aInfo);
         }
 
         public static bool IsStarting(string applicationId)
@@ -128,10 +124,5 @@ namespace process_tracker.Kernel
 
     }
 
-    public class ApplicationStatus
-    {
-        public ApplicationDescriptor ApplicationDescriptor { get; set; }
-        public bool IsRunning { get; set; }
-    }
-
+    
 }
