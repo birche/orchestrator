@@ -2,10 +2,9 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Swashbuckle.Swagger.Model;
 using Microsoft.Extensions.Configuration;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
+using process_tracker.Repo;
 
 namespace process_tracker
 {
@@ -26,7 +25,9 @@ namespace process_tracker
 
         public void ConfigureServices(IServiceCollection services)
         {
+
             services.AddSingleton<Exec>();
+            services.AddSingleton<IApplicationRepository, ApplicationRepository>();
 
             services.AddCors(options =>
             {
@@ -39,6 +40,14 @@ namespace process_tracker
 
             services.AddMvc();
             services.AddOptions();
+
+
+#if DEBUG
+            ConfigureSwagger(services);
+#endif
+
+
+
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
@@ -48,6 +57,27 @@ namespace process_tracker
                 app.UseDeveloperExceptionPage();
 
             app.UseMvc();
+
+#if DEBUG
+            app.UseSwagger();
+            app.UseSwaggerUi();
+#endif
+        }
+
+        private void ConfigureSwagger(IServiceCollection services)
+        {
+            services.AddSwaggerGen();
+            services.ConfigureSwaggerGen(options =>
+            {
+                options.SingleApiVersion(new Info
+                {
+                    Version = "v1",
+                    Title = "Beijer exec",
+                    Description = "A simple api to serve the exec orchestrator",
+                    TermsOfService = "NA"
+                });
+                options.DescribeAllEnumsAsStrings();
+            });
         }
 
 

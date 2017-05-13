@@ -1,21 +1,18 @@
 ﻿using System;
 using System.Linq;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Text;
-using process_tracker;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal;
+using process_tracker.Repo;
 
 namespace process_tracker
 {
     public class Exec
     {
 
-        private static readonly ConcurrentDictionary<string, ApplicationInfo> m_ApplicationInfo = new ConcurrentDictionary<string, ApplicationInfo>();
+        private static readonly ConcurrentDictionary<string, ApplicationDescriptor> m_InstalledApplications = new ConcurrentDictionary<string, ApplicationDescriptor>();
+        private static readonly ConcurrentDictionary<string, ApplicationInfo> m_RunningApplications = new ConcurrentDictionary<string, ApplicationInfo>();
 
         internal class ApplicationInfo
         {
@@ -28,22 +25,32 @@ namespace process_tracker
             public bool IsRunning() => !Process.HasExited;
         }
 
-
-
-        public Exec()
+        public Exec(IApplicationRepository repo)
         {
+
+            var installedApplications = repo.GetAllApplications();
+
+
+            foreach (var applicaiton in installedApplications)
+            {
+                try
+                {
+                    Install(applicaiton);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            }
+
+        
+
+          
         }
 
-        public void Handle(ApplicationDescriptor descriptor)
+        public void Install(ApplicationDescriptor descriptor)
         {
-            ApplicationInfo info = GetApplicationInfo(descriptor.ApplicationId);
-            if (info?.IsRunning() ?? false)
-            {
-                return;
-            }
-            ProcessStartInfo pInfo = GenerateProcessStartInfo(descriptor);
-            var (task, process) = ProcessHandler.StartProcess(pInfo);
-            m_ApplicationInfo.TryAdd(descriptor.ApplicationId, new ApplicationInfo { Descriptor = descriptor, Process = process, Task = task});
+            m_InstalledApplications.AddOrUpdate(descriptor.ApplicationId, descriptor, (_, __) => descriptor);
         }
 
         private ProcessStartInfo GenerateProcessStartInfo(ApplicationDescriptor applicationDescriptor)
@@ -55,31 +62,45 @@ namespace process_tracker
 
       
 
-        private static ApplicationInfo GetApplicationInfo(string applicationId)
+        private static ApplicationInfo GetRunningApplicationInfo(string applicationId)
         {
             ApplicationInfo result;
-            m_ApplicationInfo.TryGetValue(applicationId, out result);
+            m_RunningApplications.TryGetValue(applicationId, out result);
             return result;
         }
 
 
         public void ConfigureRunOnStartup(string applicationId, bool startOnReboot)
         {
-            GetApplicationInfo(applicationId).Descriptor.StartOnReboot = startOnReboot;
+            GetRunningApplicationInfo(applicationId).Descriptor.StartOnReboot = startOnReboot;
         }
 
+        public ApplicationDescriptor[] GetAllDescriptors() => m_InstalledApplications.Select(item => item.Value).ToArray();
 
-        public ApplicationDescriptor[] GetAllDescriptors() => m_ApplicationInfo.Select(item => item.Value.Descriptor).ToArray();
+        private ApplicationDescriptor GetApplicationDescriptor(string applicationId)
+        {
+            ApplicationDescriptor descriptor;
+            m_InstalledApplications.TryGetValue(applicationId, out descriptor);
+            return descriptor;
+        }
 
 
         public void Start(string applicationId)
         {
-            
+            ApplicationInfo info = GetRunningApplicationInfo(applicationId);
+            if (info?.IsRunning() ?? false)
+            {
+                return;
+            }
+            ApplicationDescriptor descriptor = GetApplicationDescriptor(applicationId);
+            ProcessStartInfo pInfo = GenerateProcessStartInfo(descriptor);
+            var (task, process) = ProcessHandler.StartProcess(pInfo);
+            m_RunningApplications.TryAdd(descriptor.ApplicationId, new ApplicationInfo { Descriptor = descriptor, Process = process, Task = task });
         }
 
         public void Stop(string applicationId)
         {
-            ApplicationInfo aInfo = GetApplicationInfo(applicationId);
+            ApplicationInfo aInfo = GetRunningApplicationInfo(applicationId);
             if (!aInfo?.IsRunning()??false)
                 return;
             aInfo.Process.Kill();
@@ -87,15 +108,16 @@ namespace process_tracker
 
         public static bool IsStarting(string applicationId)
         {
-            ApplicationInfo info = GetApplicationInfo(applicationId);
+            ApplicationInfo info = GetRunningApplicationInfo(applicationId);
             return (DateTime.Now - info?.StartTime) > TimeSpan.FromSeconds(5);
         }
 
 
         public static bool IsAlive(string applicationId)
         {
-            return GetApplicationInfo(applicationId)?.Process.HasExited ?? false;
+            return GetRunningApplicationInfo(applicationId)?.Process.HasExited ?? false;
         }
 
     }
+
 }

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace process_tracker.Controllers
 {
-    [Route("api/v1/account")]
+    [Route("api/v1/exec")]
     public class ExecController : Controller
     {
         private readonly Exec m_Exec;

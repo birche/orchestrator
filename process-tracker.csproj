@@ -18,9 +18,12 @@
     <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.0.0-preview2-24996" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="2.0.0-preview2-24996" />
     <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.0.0-beta2" />
+
+
+    <!--swagga -->
+    <PackageReference Include="Swashbuckle" Version="6.0.0-beta902" />
+
   </ItemGroup>
-
-
 
   <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.0-preview2-24996" />
