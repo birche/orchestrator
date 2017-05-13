@@ -90,8 +90,10 @@ namespace process_tracker.Kernel
             ApplicationInfo info = GetRunningApplicationInfo(applicationId);
             if (info?.IsRunning() ?? false)
             {
+                Console.WriteLine($"applicationid {applicationId} is already running!");
                 return;
             }
+            Console.WriteLine($"Starting {applicationId}..");
             ApplicationDescriptor descriptor = GetApplicationDescriptor(applicationId);
             ProcessStartInfo pInfo = GenerateProcessStartInfo(descriptor);
             var (task, process) = ProcessHandler.StartProcess(pInfo);
@@ -115,11 +117,15 @@ namespace process_tracker.Kernel
 
         public static bool IsAlive(string applicationId)
         {
-            return GetRunningApplicationInfo(applicationId)?.Process.HasExited ?? false;
+            Console.WriteLine($"IsAlive({applicationId})");
+            return !GetRunningApplicationInfo(applicationId)?.Process.HasExited ?? false;
         }
 
         public ApplicationStatus[] GetStatus() => 
             m_InstalledApplications.Select(item => new ApplicationStatus {ApplicationDescriptor = item.Value, IsRunning = IsAlive(item.Key)}).ToArray();
+
+        public Uri GetIsAliveUri(string applicationId) => new Uri(GetApplicationDescriptor(applicationId)?.IsReadyUri);
+
     }
 
     public class ApplicationStatus

@@ -13,7 +13,7 @@ namespace process_tracker
                 .UseKestrel()
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseStartup<Startup>()
-                .UseUrls("http://*:5000")
+                .UseUrls("http://*:5001")
                 .Build();
 
             host.Run();

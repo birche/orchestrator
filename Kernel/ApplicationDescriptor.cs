@@ -20,5 +20,7 @@ namespace process_tracker.Kernel
 
         public string[] CommandLineParams { get; set; }
 
+        public string IsReadyUri { get; set; }
+
     }
 }
