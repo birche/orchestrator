@@ -120,7 +120,9 @@ namespace process_tracker.Kernel
         public ApplicationStatus[] GetStatus() => 
             m_InstalledApplications.Select(item => new ApplicationStatus {ApplicationDescriptor = item.Value, IsRunning = IsAlive(item.Key)}).ToArray();
 
-        public Uri GetIsAliveUri(string applicationId) => new Uri(GetApplicationDescriptor(applicationId)?.IsReadyUri);
+        public bool SupportsIsReadyUri(string applicationId) => GetApplicationDescriptor(applicationId)?.SupportsIsReadyUri ?? false;
+
+        public Uri GetIsReadyUri(string applicationId) => new Uri(GetApplicationDescriptor(applicationId)?.IsReadyUri);
 
     }
 

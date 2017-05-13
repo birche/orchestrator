@@ -51,11 +51,13 @@ namespace process_tracker.Controllers
         {
             m_Exec.Stop(applicationId);
         }
-
+        
         [HttpGet(nameof(IsReady))]
         public bool IsReady(string applicationId)
         {
-            Uri uri = m_Exec.GetIsAliveUri(applicationId);
+            if(!m_Exec.SupportsIsReadyUri(applicationId))
+                return true;
+            Uri uri = m_Exec.GetIsReadyUri(applicationId);
             Console.WriteLine("isReady:" + applicationId + " using " + uri.ToString());
             HttpWebRequest webRequest = WebRequest.CreateHttp(uri);
             var response = (HttpWebResponse) webRequest.GetResponse();
