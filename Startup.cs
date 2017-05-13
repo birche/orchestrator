@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Swashbuckle.Swagger.Model;
 using Microsoft.Extensions.Configuration;
 using process_tracker.Repo;
+using process_tracker.Kernel;
 
 namespace process_tracker
 {

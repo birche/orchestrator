@@ -1,4 +1,4 @@
-﻿using process_tracker;
+﻿using process_tracker.Kernel;
 
 namespace process_tracker.Repo
 {

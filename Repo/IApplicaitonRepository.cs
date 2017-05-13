@@ -1,4 +1,6 @@
-﻿namespace process_tracker.Repo
+﻿using process_tracker.Kernel;
+
+namespace process_tracker.Repo
 {
   
     public interface IApplicationRepository
