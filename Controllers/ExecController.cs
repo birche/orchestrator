@@ -24,10 +24,16 @@ namespace process_tracker.Controllers
         }
 
 
-        [HttpGet("All")]
+        [HttpGet("installed")]
         public ApplicationDescriptor[] GetAllDescriptors()
         {
             return m_Exec.GetAllDescriptors();
+        }
+
+        [HttpGet("status")]
+        public ApplicationStatus[] GetAllStatus()
+        {
+            return m_Exec.GetStatus();
         }
 
 

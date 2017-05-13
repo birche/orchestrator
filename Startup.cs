@@ -43,9 +43,9 @@ namespace process_tracker
             services.AddOptions();
 
 
-#if DEBUG
-            ConfigureSwagger(services);
-#endif
+//#if DEBUG
+//            ConfigureSwagger(services);
+//#endif
 
 
 
@@ -59,10 +59,10 @@ namespace process_tracker
 
             app.UseMvc();
 
-#if DEBUG
-            app.UseSwagger();
-            app.UseSwaggerUi();
-#endif
+//#if DEBUG
+//            app.UseSwagger();
+//            app.UseSwaggerUi();
+//#endif
         }
 
         private void ConfigureSwagger(IServiceCollection services)
