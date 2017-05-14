@@ -14,15 +14,17 @@ namespace process_tracker.Kernel
         public string ApplicationId { get; set; }
 
         public bool StartOnReboot { get; set; }
-        public string RelativeDirectory { get; set; }
-
+        public bool RestartOnUnexpectedDeath { get; set; }
+        public string RelativeWorkingDirectory { get; set; }
         public string CommandLine { get; set; }
-
         public string[] CommandLineParams { get; set; }
 
-        public bool SupportsIsReadyUri => !string.IsNullOrEmpty(IsReadyUri?.Trim()); 
+        public string IconPath { get; set; } 
+        public string StartPageUri { get; set; }
         public string IsReadyUri { get; set; }
 
-        public bool RestartOnUnexpectedDeath => true;
+
+        public bool SupportsStartPageUri => !string.IsNullOrEmpty(StartPageUri?.Trim());
+        public bool SupportsIsReadyUri => !string.IsNullOrEmpty(IsReadyUri?.Trim()); 
     }
 }

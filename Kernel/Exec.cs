@@ -54,7 +54,7 @@ namespace process_tracker.Kernel
         private ProcessStartInfo GenerateProcessStartInfo(ApplicationDescriptor applicationDescriptor)
         {
             var processStartInfo = new ProcessStartInfo(applicationDescriptor.CommandLine, string.Join(" ", applicationDescriptor.CommandLineParams));
-            processStartInfo.WorkingDirectory = Path.Combine(m_ApplicationRepository.RootPath, applicationDescriptor.RelativeDirectory);
+            processStartInfo.WorkingDirectory = Path.Combine(m_ApplicationRepository.RootPath, applicationDescriptor.RelativeWorkingDirectory);
             return processStartInfo;
         }
 
@@ -96,7 +96,7 @@ namespace process_tracker.Kernel
             string moduleName = process.MainModule.ModuleName;
             process.Exited += (_, __) => {
                 Console.WriteLine("Check that this event works on linux!!!!");
-                Console.WriteLine(moduleName + " exited at " + process.ExitTime);
+                Console.WriteLine(  moduleName + " exited at " + process.ExitTime);
                 if(descriptor.RestartOnUnexpectedDeath)
                 {
                     ApplicationInfo aInfo;
