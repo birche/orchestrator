@@ -22,6 +22,7 @@ namespace process_tracker.Kernel
             public Process Process { get; set; }
             public Task Task { get; set; }
             public DateTime StartTime { get; } = DateTime.Now;
+            public bool RequestStop { get; set; }
 
 
             public bool IsRunning() => !Process.HasExited;
@@ -94,23 +95,25 @@ namespace process_tracker.Kernel
             var (task, process) = ProcessHandler.StartProcess(pInfo);
             process.EnableRaisingEvents = true;
             string moduleName = process.MainModule.ModuleName;
+            var aInfo = new ApplicationInfo {Descriptor = descriptor, Process = process, Task = task};
+            m_RunningApplications.TryAdd(descriptor.ApplicationId, aInfo);
             process.Exited += (_, __) => {
-                Console.WriteLine("Check that this event works on linux!!!!");
-                Console.WriteLine(  moduleName + " exited at " + process.ExitTime);
-                if(descriptor.RestartOnUnexpectedDeath)
+                Console.WriteLine(moduleName + " exited at " + process.ExitTime);
+                m_RunningApplications.TryRemove(applicationId, out aInfo);
+                if (!aInfo.RequestStop && descriptor.RestartOnUnexpectedDeath)
                 {
-                    ApplicationInfo aInfo;
-                    m_RunningApplications.TryRemove(applicationId, out aInfo);
                     Start(applicationId);
                 }
             };
-            m_RunningApplications.TryAdd(descriptor.ApplicationId, new ApplicationInfo { Descriptor = descriptor, Process = process, Task = task });
+            
         }
 
-
+        
         public void Stop(string applicationId)
         {
             ApplicationInfo aInfo = GetRunningApplicationInfo(applicationId);
+            aInfo.RequestStop = true;
+            
             if (!aInfo?.IsRunning()??false)
                 return;
             aInfo.Process.Kill();
