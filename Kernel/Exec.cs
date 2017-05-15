@@ -97,15 +97,18 @@ namespace process_tracker.Kernel
             string moduleName = process.MainModule.ModuleName;
             var aInfo = new ApplicationInfo {Descriptor = descriptor, Process = process, Task = task};
             m_RunningApplications.TryAdd(descriptor.ApplicationId, aInfo);
-            process.Exited += (_, __) => {
+
+            process.Exited += (_, __) =>
+            {
+                ApplicationInfo app;
                 Console.WriteLine(moduleName + " exited at " + process.ExitTime);
-                m_RunningApplications.TryRemove(applicationId, out aInfo);
-                if (!aInfo.RequestStop && descriptor.RestartOnUnexpectedDeath)
+                m_RunningApplications.TryRemove(applicationId, out app);
+                if (!app.RequestStop && descriptor.RestartOnUnexpectedDeath)
                 {
                     Start(applicationId);
                 }
             };
-            
+
         }
 
         
