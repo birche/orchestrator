@@ -13,9 +13,9 @@ namespace process_tracker.Repo
                 ApplicationId = "AutoUpdateServer",
                 StartOnReboot = true,
                 RestartOnUnexpectedDeath = true,
-                RelativeWorkingDirectory = "autoupdateserver/netcoreapp2.0/linux-arm/publish",
-                CommandLine = "/var/storage/repo/dotnet/dotnet",
-                CommandLineParams = new[] { "AutoTransfer.dll" },
+                RelativeWorkingDirectory = "c:\temp",//autoupdateserver/netcoreapp2.0/linux-arm/publish",
+                CommandLine = "notepad",
+                CommandLineParams = new string[0],// = new[] { "AutoTransfer.dll" },
                 
                 IconPath = "icon.svg",
                 StartPageUri = "http://localhost:5000/",
