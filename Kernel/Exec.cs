@@ -9,7 +9,7 @@ using Orchestrator;
 
 namespace Orchestrator.Kernel
 {
-    internal class Exec
+    public sealed class Exec
     {
 
         private static readonly ConcurrentDictionary<string, ApplicationDescriptor> m_InstalledApplications = new ConcurrentDictionary<string, ApplicationDescriptor>();
@@ -110,7 +110,7 @@ namespace Orchestrator.Kernel
         }
 
         
-        public ApplicationInfo Stop(string applicationId)
+        internal ApplicationInfo Stop(string applicationId)
         {
             ApplicationInfo aInfo = GetRunningApplicationInfo(applicationId);
             aInfo.RequestStop = true;
@@ -140,6 +140,14 @@ namespace Orchestrator.Kernel
         public bool SupportsIsReadyUri(string applicationId) => GetApplicationDescriptor(applicationId)?.SupportsIsReadyUri ?? false;
 
         public Uri GetIsReadyUri(string applicationId) => new Uri(GetApplicationDescriptor(applicationId)?.IsReadyUri);
+
+        public string GetIconPath(string applicationId)
+        {
+            ApplicationDescriptor applicationDescriptor = GetApplicationDescriptor(applicationId);
+            string targetFolder = Path.Combine(m_ApplicationRepository.RootPath, applicationDescriptor.RelativeWorkingDirectory);
+            string iconPath = Path.Combine(targetFolder, applicationDescriptor.IconPath);
+            return iconPath;
+        }
 
     }
 

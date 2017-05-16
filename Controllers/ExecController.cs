@@ -1,9 +1,10 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -18,7 +19,7 @@ namespace Orchestrator.Controllers
     {
         private readonly Exec m_Exec;
 
-        internal ExecController(Exec exec)
+        public ExecController(Exec exec)
         {
             m_Exec = exec;
         }
@@ -84,5 +85,21 @@ namespace Orchestrator.Controllers
             return response.StatusCode == HttpStatusCode.OK;
         }
 
+        [HttpGet(nameof(Icon))]
+        public HttpResponseMessage Icon(string applicationId){
+            string path = m_Exec.GetIconPath(applicationId);
+            Console.WriteLine("iconpath: " + path);
+              
+            var response = new HttpResponseMessage();
+            response.Content = new StreamContent(System.IO.File.OpenRead(path));
+            MediaTypeHeaderValue mthv;
+            if(path.EndsWith("jpg") || path.EndsWith("jpeg"))
+                mthv = new MediaTypeHeaderValue("image/jpeg");
+            else
+                mthv = new MediaTypeHeaderValue($"image/{Path.GetExtension(path)}");
+                
+            response.Content.Headers.ContentType = mthv;
+            return response;
+          }
     }
 }

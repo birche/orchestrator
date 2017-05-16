@@ -19,7 +19,7 @@ namespace Orchestrator.Kernel
         public string CommandLine { get; set; }
         public string[] CommandLineParams { get; set; }
 
-        public string IconPath { get; set; } 
+        public string IconPath { get; set; } // relative RelativeWorkingDirectory
         public string StartPageUri { get; set; }
         public string IsReadyUri { get; set; }
 
