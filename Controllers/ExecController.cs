@@ -18,7 +18,7 @@ namespace Orchestrator.Controllers
     {
         private readonly Exec m_Exec;
 
-        public ExecController(Exec exec)
+        internal ExecController(Exec exec)
         {
             m_Exec = exec;
         }
@@ -28,7 +28,7 @@ namespace Orchestrator.Controllers
             m_Exec.ConfigureRunOnStartup(applicationId, startOnReboot);
         }
 
-        [HttpPost("deploy")]
+        [HttpPost("install")]
         [AllowAnonymous]
         public Task<string> FileUploadAction(IFormFileCollection files)
         {
@@ -51,6 +51,11 @@ namespace Orchestrator.Controllers
             return Task.FromResult(sb.ToString());
         }
 
+        [HttpGet(nameof(UnInstall))]
+        public void UnInstall(string applicationId)
+        {
+            m_Exec.UnInstall(applicationId);
+        }
 
         [HttpGet("status")]
         public ApplicationStatus[] GetAllStatus() => m_Exec.GetStatus();
@@ -60,7 +65,6 @@ namespace Orchestrator.Controllers
         {
             m_Exec.Start(applicationId);
         }
-
 
         [HttpGet(nameof(Stop))]
         public void Stop(string applicationId)

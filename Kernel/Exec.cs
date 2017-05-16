@@ -9,7 +9,20 @@ using Orchestrator;
 
 namespace Orchestrator.Kernel
 {
-    public class Exec
+
+    internal class ApplicationInfo
+    {
+        public ApplicationDescriptor Descriptor { get; set; }
+        public Process Process { get; set; }
+        public Task Task { get; set; }
+        public DateTime StartTime { get; } = DateTime.Now;
+        public bool RequestStop { get; set; }
+
+
+        public bool IsRunning() => !Process.HasExited;
+    }
+
+    internal class Exec
     {
 
         private static readonly ConcurrentDictionary<string, ApplicationDescriptor> m_InstalledApplications = new ConcurrentDictionary<string, ApplicationDescriptor>();
@@ -17,17 +30,7 @@ namespace Orchestrator.Kernel
 
         private readonly IApplicationRepository m_ApplicationRepository;
 
-        internal class ApplicationInfo
-        {
-            public ApplicationDescriptor Descriptor { get; set; }
-            public Process Process { get; set; }
-            public Task Task { get; set; }
-            public DateTime StartTime { get; } = DateTime.Now;
-            public bool RequestStop { get; set; }
-
-
-            public bool IsRunning() => !Process.HasExited;
-        }
+     
 
         public Exec(IApplicationRepository repo)
         {
@@ -46,6 +49,13 @@ namespace Orchestrator.Kernel
                     Console.WriteLine(e.Message);
                 }
             }
+        }
+
+        public void UnInstall(string applicationId)
+        {
+            ApplicationInfo aInfo = Stop(applicationId);
+            aInfo?.Process?.WaitForExit();
+            m_InstalledApplications.TryRemove(applicationId, out ApplicationDescriptor descriptor);
         }
 
         public void Install(ApplicationDescriptor descriptor)
@@ -113,15 +123,15 @@ namespace Orchestrator.Kernel
         }
 
         
-        public void Stop(string applicationId)
+        public ApplicationInfo Stop(string applicationId)
         {
             ApplicationInfo aInfo = GetRunningApplicationInfo(applicationId);
             aInfo.RequestStop = true;
             
             if (!aInfo?.IsRunning()??false)
-                return;
+                return null;
             aInfo.Process.Kill();
-            
+            return aInfo;
         }
 
         public static bool IsStarting(string applicationId)
