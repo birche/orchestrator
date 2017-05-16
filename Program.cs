@@ -2,8 +2,9 @@
 using System.IO;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using Orchestrator;
 
-namespace process_tracker
+namespace Orchestrator
 {
     partial class Program
     {

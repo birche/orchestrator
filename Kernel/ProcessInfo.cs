@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace process_tracker.Kernel
+namespace Orchestrator.Kernel
 {
     public class ProcessInfo
     {

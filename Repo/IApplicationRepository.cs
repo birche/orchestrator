@@ -1,6 +1,6 @@
-﻿using process_tracker.Kernel;
+﻿using Orchestrator.Kernel;
 
-namespace process_tracker.Repo
+namespace Orchestrator.Repo
 {
     public interface IApplicationRepository
     {

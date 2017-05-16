@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using process_tracker.Kernel;
+using Orchestrator.Kernel;
 
-namespace process_tracker.Controllers
+namespace Orchestrator.Controllers
 {
     [Route("api/v1/exec")]
     public class ExecController : Controller
@@ -52,14 +52,8 @@ namespace process_tracker.Controllers
         }
 
 
-
-
         [HttpGet("status")]
-        public ApplicationStatus[] GetAllStatus()
-        {
-            return m_Exec.GetStatus();
-        }
-
+        public ApplicationStatus[] GetAllStatus() => m_Exec.GetStatus();
 
         [HttpGet(nameof(Start))]
         public void Start(string applicationId)

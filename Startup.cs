@@ -4,10 +4,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Swashbuckle.Swagger.Model;
 using Microsoft.Extensions.Configuration;
-using process_tracker.Repo;
-using process_tracker.Kernel;
+using Orchestrator.Repo;
+using Orchestrator.Kernel;
 
-namespace process_tracker
+namespace Orchestrator
 {
     public class Startup
     {

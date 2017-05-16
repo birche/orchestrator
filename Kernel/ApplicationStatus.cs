@@ -1,4 +1,4 @@
-namespace process_tracker.Kernel
+namespace Orchestrator.Kernel
 {
     public class ApplicationStatus
     {

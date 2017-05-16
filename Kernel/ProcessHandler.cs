@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal;
 
-namespace process_tracker.Kernel
+namespace Orchestrator.Kernel
 {
    
     static class ProcessHandler
