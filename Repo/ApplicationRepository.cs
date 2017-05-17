@@ -24,10 +24,13 @@ namespace Orchestrator.Repo
 
         public RepoApplicationDescriptor[] GetAllApplications()
         {
+            Console.WriteLine("Searching for applications...");
             string[] applicationDescriptorFiles = Directory.GetFiles(RootPath, $"*{m_Settings.AppExtension}", SearchOption.AllDirectories);
 
             RepoApplicationDescriptor[] apps =
                 applicationDescriptorFiles.Select(ParseDescriptor).ToArray();
+
+            Console.WriteLine($"Found and installed {apps.Count()} applications...");
 
             return apps;
         }
