@@ -13,7 +13,7 @@ namespace Orchestrator.Repo
                 ApplicationId = "AutoUpdateServer",
                 StartOnReboot = true,
                 RestartOnUnexpectedDeath = true,
-                RelativeWorkingDirectory = "c:\temp",//autoupdateserver/netcoreapp2.0/linux-arm/publish",
+                RelativeWorkingDirectory = "publish",//autoupdateserver/netcoreapp2.0/linux-arm/publish",
                 CommandLine = "notepad",
                 CommandLineParams = new string[0],// = new[] { "AutoTransfer.dll" },
                 

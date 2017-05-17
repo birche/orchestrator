@@ -86,20 +86,22 @@ namespace Orchestrator.Controllers
         }
 
         [HttpGet(nameof(Icon))]
-        public HttpResponseMessage Icon(string applicationId){
+        public async Task<IActionResult> Icon(string applicationId)
+        { 
+
             string path = m_Exec.GetIconPath(applicationId);
             Console.WriteLine("iconpath: " + path);
-              
-            var response = new HttpResponseMessage();
-            response.Content = new StreamContent(System.IO.File.OpenRead(path));
-            MediaTypeHeaderValue mthv;
-            if(path.EndsWith("jpg") || path.EndsWith("jpeg"))
-                mthv = new MediaTypeHeaderValue("image/jpeg");
+
+            path = Path.Combine(@"C:\Users\jnb\Source\Repos\auto-update-client\public", "autoupdate-01.png");
+            FileStream image = System.IO.File.OpenRead(path);
+
+            string mimeType;
+            if (path.EndsWith("jpg") || path.EndsWith("jpeg"))
+                mimeType = "image/jpeg";
             else
-                mthv = new MediaTypeHeaderValue($"image/{Path.GetExtension(path)}");
-                
-            response.Content.Headers.ContentType = mthv;
-            return response;
+                mimeType = $"image/{Path.GetExtension(path).Replace(".", string.Empty)}";
+
+            return File(image, mimeType);
           }
     }
 }
