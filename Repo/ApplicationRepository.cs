@@ -5,12 +5,14 @@ using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
 using Microsoft.Extensions.Options;
+using System.Collections.Generic;
 
 namespace Orchestrator.Repo
 {
     class ApplicationRepository : IApplicationRepository
     {
-        private RepoSettings m_Settings; 
+        private static XmlSerializer serializer = new XmlSerializer(typeof(ApplicationDescriptor));
+        private readonly RepoSettings m_Settings; 
         public ApplicationRepository(IOptions<RepoSettings> settings)
         {
             m_Settings = settings.Value;
@@ -22,29 +24,25 @@ namespace Orchestrator.Repo
         {
             string[] applicationDescriptorFiles = Directory.GetFiles(RootPath, $"*{m_Settings.AppExtension}", SearchOption.AllDirectories);
 
-            var serializer = new XmlSerializer(typeof(ApplicationDescriptor));
+            List<ApplicationDescriptor> apps =  applicationDescriptorFiles 
+                .Select(ReadOutDescriptor)
+                .ToList();
 
-            ApplicationDescriptor[]apps =  applicationDescriptorFiles 
-                .Select(file => (ApplicationDescriptor) serializer.Deserialize(File.OpenRead(file)))
-                .ToArray();
+            apps.ForEach(item => item.CommandLine = item.CommandLine.Replace("%dotnet%", m_Settings.DotnetCliPath, StringComparison.InvariantCultureIgnoreCase));
 
-            return apps;
-            /*
-
-            var applicationDescriptor = new ApplicationDescriptor
-            {
-                ApplicationId = "AutoUpdateServer",
-                StartOnReboot = true,
-                RestartOnUnexpectedDeath = true,
-                RelativeWorkingDirectory = "publish",//autoupdateserver/netcoreapp2.0/linux-arm/publish",
-                CommandLine = "notepad",
-                CommandLineParams = new string[0],// = new[] { "AutoTransfer.dll" },
-                
-                IconPath = "icon.svg",
-                StartPageUri = "http://localhost:5000/",
-                IsReadyUri = "http://localhost:5000/api/v1/account/IsAlive",
-            };
-            return new [] { applicationDescriptor };*/
+            return apps.ToArray();
         }
+
+
+        private ApplicationDescriptor ReadOutDescriptor(string path)
+        {
+            using (Stream stream = File.OpenRead(path))
+            {
+                return ParseDescriptor(stream);
+            }
+        }
+
+        public ApplicationDescriptor ParseDescriptor(Stream stream) => (ApplicationDescriptor) serializer.Deserialize(stream);
+
     }
 }

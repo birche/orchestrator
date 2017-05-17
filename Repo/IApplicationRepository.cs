@@ -1,4 +1,5 @@
-﻿using Orchestrator.Kernel;
+﻿using System.IO;
+using Orchestrator.Kernel;
 
 namespace Orchestrator.Repo
 {
@@ -6,5 +7,7 @@ namespace Orchestrator.Repo
     {
         string RootPath {get;}
         ApplicationDescriptor[] GetAllApplications();
+
+        ApplicationDescriptor ParseDescriptor(Stream stream);
     }
 }

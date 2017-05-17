@@ -53,9 +53,9 @@ namespace Orchestrator.Kernel
                 throw new Exception("No app descriptor");
             var serializer = new XmlSerializer(typeof(ApplicationDescriptor));
             ApplicationDescriptor appDescriptor;
-            using (Stream s = archiveEntry.Open())
+            using (Stream stream = archiveEntry.Open())
             {
-                appDescriptor = (ApplicationDescriptor) serializer.Deserialize(s);
+                appDescriptor = m_ApplicationRepository.ParseDescriptor(stream);
             }
             if (appDescriptor == null)
                 throw new Exception("Could not evaluate " + nameof(ApplicationDescriptor));
