@@ -1,16 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Orchestrator.Kernel;
+using Orchestrator.Repo;
 
 namespace Orchestrator.Controllers
 {
@@ -18,10 +21,12 @@ namespace Orchestrator.Controllers
     public class ExecController : Controller
     {
         private readonly Exec m_Exec;
+        private readonly IApplicationRepository m_ApplicationRepository;
 
-        public ExecController(Exec exec)
+        public ExecController(Exec exec, IApplicationRepository repository)
         {
             m_Exec = exec;
+            m_ApplicationRepository = repository;
         }
 
         public void ConfigureRunOnStartup(string applicationId, bool startOnReboot)
@@ -40,13 +45,12 @@ namespace Orchestrator.Controllers
                 {
                     using (Stream zipStream = file.OpenReadStream())
                     {
-                        //todo:fix this
-                        zipStream.Dispose();
-                        //store in /var/storage/repo unzipped
-
-                        //m_ProjectPackage.LoadProjectZipToRepository(zipStream);
+                        using (ZipArchive archive = new ZipArchive(zipStream))
+                        {
+                            m_Exec.Install(archive);
+                        }
                     }
-                    sb.AppendLine($"Did unzip file {file.FileName}");
+                    sb.AppendLine($"Did deploy {file.FileName}");
                 }
             }
             return Task.FromResult(sb.ToString());

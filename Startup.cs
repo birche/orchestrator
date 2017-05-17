@@ -14,12 +14,12 @@ namespace Orchestrator
 
         public Startup(IHostingEnvironment env)
         {
-            var builder = new ConfigurationBuilder()
+            Configuration = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
-                .AddEnvironmentVariables();
-            Configuration = builder.Build();
+                .AddEnvironmentVariables()
+            .Build();
         }
 
         public IConfigurationRoot Configuration { get; }
@@ -41,14 +41,11 @@ namespace Orchestrator
 
             services.AddMvc();
             services.AddOptions();
+            services.Configure<RepoSettings>(Configuration.GetSection(nameof(RepoSettings)));
 
-
-//#if DEBUG
-//            ConfigureSwagger(services);
-//#endif
-
-
-
+            //#if DEBUG
+            //            ConfigureSwagger(services);
+            //#endif
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)

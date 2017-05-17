@@ -6,6 +6,8 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using Orchestrator.Repo;
 using Orchestrator;
+using System.IO.Compression;
+using System.Xml.Serialization;
 
 namespace Orchestrator.Kernel
 {
@@ -16,7 +18,6 @@ namespace Orchestrator.Kernel
         private static readonly ConcurrentDictionary<string, ApplicationInfo> m_RunningApplications = new ConcurrentDictionary<string, ApplicationInfo>();
 
         private readonly IApplicationRepository m_ApplicationRepository;
-
      
 
         public Exec(IApplicationRepository repo)
@@ -45,9 +46,29 @@ namespace Orchestrator.Kernel
             m_InstalledApplications.TryRemove(applicationId, out ApplicationDescriptor descriptor);
         }
 
-        public void Install(ApplicationDescriptor descriptor)
+        public void Install(ZipArchive archive)
         {
-            m_InstalledApplications.AddOrUpdate(descriptor.ApplicationId, descriptor, (_, __) => descriptor);
+            ZipArchiveEntry archiveEntry = archive.Entries.FirstOrDefault(item => item.Name.Equals("app.app", StringComparison.InvariantCultureIgnoreCase));
+            if (archiveEntry == null)
+                throw new Exception("No app descriptor");
+            var serializer = new XmlSerializer(typeof(ApplicationDescriptor));
+            ApplicationDescriptor appDescriptor;
+            using (Stream s = archiveEntry.Open())
+            {
+                appDescriptor = (ApplicationDescriptor) serializer.Deserialize(s);
+            }
+            if (appDescriptor == null)
+                throw new Exception("Could not evaluate " + nameof(ApplicationDescriptor));
+
+            //store in /var/storage/repo unzipped
+            archive.ExtractToDirectory(m_ApplicationRepository.RootPath);
+
+            Install(appDescriptor);
+        }
+
+        void Install(ApplicationDescriptor applicationDescriptor)
+        {
+            m_InstalledApplications.AddOrUpdate(applicationDescriptor.ApplicationId, applicationDescriptor, (_, __) => applicationDescriptor);
         }
 
         private ProcessStartInfo GenerateProcessStartInfo(ApplicationDescriptor applicationDescriptor)
