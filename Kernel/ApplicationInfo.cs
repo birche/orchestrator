@@ -1,12 +1,13 @@
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System;
+using Orchestrator.Repo;
 
 namespace Orchestrator.Kernel
 {
    internal class ApplicationInfo
     {
-        public ApplicationDescriptor Descriptor { get; set; }
+        public RepoApplicationDescriptor Descriptor { get; set; }
         public Process Process { get; set; }
         public Task Task { get; set; }
         public DateTime StartTime { get; } = DateTime.Now;

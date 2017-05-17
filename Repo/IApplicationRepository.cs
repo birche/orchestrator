@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.IO.Compression;
+using System.IO;
 using Orchestrator.Kernel;
 
 namespace Orchestrator.Repo
@@ -6,8 +7,8 @@ namespace Orchestrator.Repo
     public interface IApplicationRepository
     {
         string RootPath {get;}
-        ApplicationDescriptor[] GetAllApplications();
+        RepoApplicationDescriptor[] GetAllApplications();
 
-        ApplicationDescriptor ParseDescriptor(Stream stream);
+        RepoApplicationDescriptor AddApplication(Stream stream, ZipArchive archive);
     }
 }

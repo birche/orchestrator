@@ -47,7 +47,7 @@ namespace Orchestrator.Controllers
                     {
                         using (ZipArchive archive = new ZipArchive(zipStream))
                         {
-                            m_Exec.Install(archive);
+                            m_Exec.DeployAndInstall(archive);
                         }
                     }
                     sb.AppendLine($"Did deploy {file.FileName}");

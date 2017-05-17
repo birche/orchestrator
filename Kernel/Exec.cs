@@ -13,8 +13,7 @@ namespace Orchestrator.Kernel
 {
     public sealed class Exec
     {
-
-        private static readonly ConcurrentDictionary<string, ApplicationDescriptor> m_InstalledApplications = new ConcurrentDictionary<string, ApplicationDescriptor>();
+        private static readonly ConcurrentDictionary<string, RepoApplicationDescriptor> m_InstalledApplications = new ConcurrentDictionary<string, RepoApplicationDescriptor>();
         private static readonly ConcurrentDictionary<string, ApplicationInfo> m_RunningApplications = new ConcurrentDictionary<string, ApplicationInfo>();
 
         private readonly IApplicationRepository m_ApplicationRepository;
@@ -24,9 +23,9 @@ namespace Orchestrator.Kernel
         {
 
             m_ApplicationRepository = repo;
-            ApplicationDescriptor[] installedApplications = m_ApplicationRepository.GetAllApplications();
+            RepoApplicationDescriptor[] installedApplications = m_ApplicationRepository.GetAllApplications();
 
-            foreach (ApplicationDescriptor application in installedApplications)
+            foreach (RepoApplicationDescriptor application in installedApplications)
             {
                 try
                 {
@@ -43,38 +42,33 @@ namespace Orchestrator.Kernel
         {
             ApplicationInfo aInfo = Stop(applicationId);
             aInfo?.Process?.WaitForExit();
-            m_InstalledApplications.TryRemove(applicationId, out ApplicationDescriptor descriptor);
+            m_InstalledApplications.TryRemove(applicationId, out RepoApplicationDescriptor descriptor);
         }
 
-        public void Install(ZipArchive archive)
+        public void DeployAndInstall(ZipArchive archive)
         {
-            ZipArchiveEntry archiveEntry = archive.Entries.FirstOrDefault(item => item.Name.Equals("app.app", StringComparison.InvariantCultureIgnoreCase));
+            ZipArchiveEntry archiveEntry = archive.Entries.FirstOrDefault(item => Path.GetExtension(item.Name).EndsWith(".symphony", StringComparison.InvariantCultureIgnoreCase));
             if (archiveEntry == null)
                 throw new Exception("No app descriptor");
-            var serializer = new XmlSerializer(typeof(ApplicationDescriptor));
-            ApplicationDescriptor appDescriptor;
+            ;
             using (Stream stream = archiveEntry.Open())
             {
-                appDescriptor = m_ApplicationRepository.ParseDescriptor(stream);
+                RepoApplicationDescriptor appDescriptor = m_ApplicationRepository.AddApplication(stream, archive);
+                if (appDescriptor == null)
+                    throw new Exception("Could not evaluate " + nameof(ApplicationManifest));
+                Install(appDescriptor);
             }
-            if (appDescriptor == null)
-                throw new Exception("Could not evaluate " + nameof(ApplicationDescriptor));
-
-            //store in /var/storage/repo unzipped
-            archive.ExtractToDirectory(m_ApplicationRepository.RootPath);
-
-            Install(appDescriptor);
         }
 
-        void Install(ApplicationDescriptor applicationDescriptor)
+        void Install(RepoApplicationDescriptor repoApplicationDescriptor)
         {
-            m_InstalledApplications.AddOrUpdate(applicationDescriptor.ApplicationId, applicationDescriptor, (_, __) => applicationDescriptor);
+            m_InstalledApplications.AddOrUpdate(repoApplicationDescriptor.Manifest.ApplicationId, repoApplicationDescriptor, (_, __) => repoApplicationDescriptor);
         }
 
-        private ProcessStartInfo GenerateProcessStartInfo(ApplicationDescriptor applicationDescriptor)
+        private ProcessStartInfo GenerateProcessStartInfo(RepoApplicationDescriptor repoApplicationDescriptor)
         {
-            var processStartInfo = new ProcessStartInfo(applicationDescriptor.CommandLine, string.Join(" ", applicationDescriptor.CommandLineParams));
-            processStartInfo.WorkingDirectory = Path.Combine(m_ApplicationRepository.RootPath, applicationDescriptor.RelativeWorkingDirectory);
+            var processStartInfo = new ProcessStartInfo(repoApplicationDescriptor.Manifest.CommandLine, string.Join(" ", repoApplicationDescriptor.Manifest.CommandLineParams));
+            processStartInfo.WorkingDirectory = repoApplicationDescriptor.WorkingDirectory;
             return processStartInfo;
         }
 
@@ -87,14 +81,14 @@ namespace Orchestrator.Kernel
 
         public void ConfigureRunOnStartup(string applicationId, bool startOnReboot)
         {
-            GetRunningApplicationInfo(applicationId).Descriptor.StartOnReboot = startOnReboot;
+            GetRunningApplicationInfo(applicationId).Descriptor.Manifest.StartOnReboot = startOnReboot;
         }
 
-        public ApplicationDescriptor[] GetAllDescriptors() => m_InstalledApplications.Select(item => item.Value).ToArray();
+        public RepoApplicationDescriptor[] GetAllDescriptors() => m_InstalledApplications.Select(item => item.Value).ToArray();
 
-        private ApplicationDescriptor GetApplicationDescriptor(string applicationId)
+        private RepoApplicationDescriptor GetApplicationDescriptor(string applicationId)
         {
-            ApplicationDescriptor descriptor;
+            RepoApplicationDescriptor descriptor;
             m_InstalledApplications.TryGetValue(applicationId, out descriptor);
             return descriptor;
         }
@@ -109,20 +103,20 @@ namespace Orchestrator.Kernel
                 return;
             }
             Console.WriteLine($"Starting {applicationId}..");
-            ApplicationDescriptor descriptor = GetApplicationDescriptor(applicationId);
+            RepoApplicationDescriptor descriptor = GetApplicationDescriptor(applicationId);
             ProcessStartInfo pInfo = GenerateProcessStartInfo(descriptor);
             var (task, process) = ProcessHandler.StartProcess(pInfo);
             process.EnableRaisingEvents = true;
             string moduleName = process.MainModule.ModuleName;
             var aInfo = new ApplicationInfo {Descriptor = descriptor, Process = process, Task = task};
-            m_RunningApplications.TryAdd(descriptor.ApplicationId, aInfo);
+            m_RunningApplications.TryAdd(descriptor.Manifest.ApplicationId, aInfo);
 
             process.Exited += (_, __) =>
             {
                 ApplicationInfo app;
                 Console.WriteLine(moduleName + " exited at " + process.ExitTime);
                 m_RunningApplications.TryRemove(applicationId, out app);
-                if (!app.RequestStop && descriptor.RestartOnUnexpectedDeath)
+                if (!app.RequestStop && descriptor.Manifest.RestartOnUnexpectedDeath)
                 {
                     Start(applicationId);
                 }
@@ -156,17 +150,17 @@ namespace Orchestrator.Kernel
         }
 
         public ApplicationStatus[] GetStatus() => 
-            m_InstalledApplications.Select(item => new ApplicationStatus {ApplicationDescriptor = item.Value, IsRunning = IsAlive(item.Key)}).ToArray();
+            m_InstalledApplications.Select(item => new ApplicationStatus {ApplicationManifest = item.Value.Manifest, IsRunning = IsAlive(item.Key)}).ToArray();
 
-        public bool SupportsIsReadyUri(string applicationId) => GetApplicationDescriptor(applicationId)?.SupportsIsReadyUri ?? false;
+        public bool SupportsIsReadyUri(string applicationId) => GetApplicationDescriptor(applicationId)?.Manifest.SupportsIsReadyUri ?? false;
 
-        public Uri GetIsReadyUri(string applicationId) => new Uri(GetApplicationDescriptor(applicationId)?.IsReadyUri);
+        public Uri GetIsReadyUri(string applicationId) => new Uri(GetApplicationDescriptor(applicationId)?.Manifest.IsReadyUri);
 
         public string GetIconPath(string applicationId)
         {
-            ApplicationDescriptor applicationDescriptor = GetApplicationDescriptor(applicationId);
-            string targetFolder = Path.Combine(m_ApplicationRepository.RootPath, applicationDescriptor.RelativeWorkingDirectory);
-            string iconPath = Path.Combine(targetFolder, applicationDescriptor.IconPath);
+            RepoApplicationDescriptor applicationDescriptor = GetApplicationDescriptor(applicationId);
+            string targetFolder = Path.Combine(m_ApplicationRepository.RootPath, applicationDescriptor.Manifest.RelativeWorkingDirectory);
+            string iconPath = Path.Combine(targetFolder, applicationDescriptor.Manifest.IconPath);
             return iconPath;
         }
 
