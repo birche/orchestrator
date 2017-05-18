@@ -21,17 +21,21 @@ namespace Orchestrator.Controllers
     public class ExecController : Controller
     {
         private readonly Exec m_Exec;
-        private readonly IApplicationRepository m_ApplicationRepository;
 
         public ExecController(Exec exec, IApplicationRepository repository)
         {
             m_Exec = exec;
-            m_ApplicationRepository = repository;
         }
 
         public void ConfigureRunOnStartup(string applicationId, bool startOnReboot)
         {
             m_Exec.ConfigureRunOnStartup(applicationId, startOnReboot);
+        }
+
+        [HttpGet(nameof(Ping))]
+        public void Ping(string arg)
+        {
+            Console.WriteLine("Ping " + arg);
         }
 
         [HttpPost("install")]
@@ -89,34 +93,43 @@ namespace Orchestrator.Controllers
             return response.StatusCode == HttpStatusCode.OK;
         }
 
-        [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
         [HttpGet(nameof(Icon))]
-        public async Task<IActionResult> Icon(string applicationId, string random)
-        { 
-
-            string path = m_Exec.GetIconPath(applicationId);
-           
-            
-            FileStream image = System.IO.File.OpenRead(path);
-
-            string mimeType;
-            if (path.EndsWith("jpg", StringComparison.InvariantCultureIgnoreCase) ||
-                path.EndsWith("jpeg", StringComparison.InvariantCultureIgnoreCase))
+        public FileStreamResult Icon([FromQuery]string applicationId, [FromQuery]string random)
+        {
+            try
             {
-                mimeType = "image/jpeg";
-            }
-            else if (path.EndsWith("svg", StringComparison.InvariantCultureIgnoreCase))
-            {
-                mimeType = "image/svg+xml";
-            }
-            else
-            {
-                mimeType = $"image/{Path.GetExtension(path).Replace(".", string.Empty)}";
-            }
+                Console.WriteLine("calculate icon fetch path for " + applicationId);
+                string path = m_Exec.GetIconPath(applicationId);
+                Console.WriteLine("Icon path: " + path);
 
-            Console.WriteLine("iconpath: " + path + ", mimetype:" + mimeType);
+                FileStream image = System.IO.File.OpenRead(path);
+                Console.WriteLine("Icon path opened as stream");
 
-            return File(image, mimeType);
-          }
+                string mimeType;
+                if (path.EndsWith("jpg", StringComparison.InvariantCultureIgnoreCase) ||
+                    path.EndsWith("jpeg", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    mimeType = "image/jpeg";
+                }
+                else if (path.EndsWith("svg", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    mimeType = "image/svg+xml";
+                }
+                else
+                {
+                    mimeType = $"image/{Path.GetExtension(path).Replace(".", string.Empty)}";
+                }
+
+                Console.WriteLine("iconpath: " + path + ", mimetype:" + mimeType);
+
+                return File(image, mimeType);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                Console.WriteLine(e.GetType().Name);
+                throw;
+            }
+        }
     }
 }

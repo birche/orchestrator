@@ -43,9 +43,9 @@ namespace Orchestrator
             services.AddOptions();
             services.Configure<RepoSettings>(Configuration.GetSection(nameof(RepoSettings)));
 
-            //#if DEBUG
-            //            ConfigureSwagger(services);
-            //#endif
+#if DEBUG
+            ConfigureSwagger(services);
+#endif
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
@@ -56,16 +56,17 @@ namespace Orchestrator
 
             app.ApplicationServices.GetService<Exec>();
 
-            app.UseMvc();
             app.UseDefaultFiles();
             app.UseStaticFiles();
-            
-            
 
-            //#if DEBUG
-            //            app.UseSwagger();
-            //            app.UseSwaggerUi();
-            //#endif
+            app.UseMvc();
+
+
+
+#if DEBUG
+            app.UseSwagger();
+            app.UseSwaggerUi();
+#endif
         }
 
         private void ConfigureSwagger(IServiceCollection services)
