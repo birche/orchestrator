@@ -69,6 +69,10 @@ namespace Orchestrator.Controllers
         [HttpGet("status")]
         public ApplicationStatus[] GetAllStatus() => m_Exec.GetStatus();
 
+
+        [HttpGet("status/{applicationId}")]
+        public ApplicationStatus GetStatus(string applicationId) => m_Exec.GetStatus(applicationId);
+
         [HttpGet(nameof(Start))]
         public void Start(string applicationId)
         {

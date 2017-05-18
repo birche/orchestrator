@@ -3,6 +3,7 @@ using System.Linq;
 using System.Diagnostics;
 using System.IO;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Orchestrator.Repo;
 using Orchestrator;
@@ -165,6 +166,19 @@ namespace Orchestrator.Kernel
 
         public ApplicationStatus[] GetStatus() => 
             m_InstalledApplications.Select(item => new ApplicationStatus {ApplicationManifest = item.Value.Manifest, IsRunning = IsAlive(item.Key), WorkingDirectory = item.Value.WorkingDirectory}).ToArray();
+
+        public ApplicationStatus GetStatus(string applicationId)
+        {
+            RepoApplicationDescriptor item = m_InstalledApplications.GetValueOrDefault(applicationId);
+            if (item == null)
+                throw new Exception("No such applicationid: " + applicationId);
+            return new ApplicationStatus
+            {
+                ApplicationManifest = item.Manifest,
+                IsRunning = IsAlive(applicationId),
+                WorkingDirectory = item.WorkingDirectory
+            };
+        }
 
         public bool SupportsIsReadyUri(string applicationId) => GetApplicationDescriptor(applicationId)?.Manifest.SupportsIsReadyUri ?? false;
 
