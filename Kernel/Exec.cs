@@ -50,7 +50,7 @@ namespace Orchestrator.Kernel
             ZipArchiveEntry archiveEntry = archive.Entries.FirstOrDefault(item => Path.GetExtension(item.Name).EndsWith(".symphony", StringComparison.InvariantCultureIgnoreCase));
             if (archiveEntry == null)
                 throw new Exception("No app descriptor");
-            ;
+            
             using (Stream stream = archiveEntry.Open())
             {
                 RepoApplicationDescriptor appDescriptor = m_ApplicationRepository.AddApplication(stream, archive);
