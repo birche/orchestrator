@@ -47,7 +47,7 @@ namespace Orchestrator.Kernel
 
         public void DeployAndInstall(ZipArchive archive)
         {
-            ZipArchiveEntry archiveEntry = archive.Entries.FirstOrDefault(item => Path.GetExtension(item.Name).EndsWith(m_ApplicationRepository.ManifestExtension, StringComparison.InvariantCultureIgnoreCase));
+            ZipArchiveEntry archiveEntry = archive.Entries.FirstOrDefault(item => Path.GetExtension(item.Name).Equals(m_ApplicationRepository.ManifestExtension, StringComparison.InvariantCultureIgnoreCase));
             if (archiveEntry == null)
                 throw new Exception("No app descriptor");
             
@@ -174,8 +174,7 @@ namespace Orchestrator.Kernel
         public string GetIconPath(string applicationId)
         {
             RepoApplicationDescriptor applicationDescriptor = GetApplicationDescriptor(applicationId);
-            string targetFolder = Path.Combine(m_ApplicationRepository.RootPath, applicationDescriptor.Manifest.RelativeWorkingDirectory);
-            string iconPath = Path.Combine(targetFolder, applicationDescriptor.Manifest.IconPath);
+            string iconPath = Path.Combine(applicationDescriptor.ManifestPath, applicationDescriptor.Manifest.IconPath);
             return iconPath;
         }
 

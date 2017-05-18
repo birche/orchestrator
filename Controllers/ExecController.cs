@@ -94,16 +94,26 @@ namespace Orchestrator.Controllers
         { 
 
             string path = m_Exec.GetIconPath(applicationId);
-            Console.WriteLine("iconpath: " + path);
-
-            path = Path.Combine(@"C:\Users\jnb\Source\Repos\auto-update-client\public", "autoupdate-01.png");
+           
+            
             FileStream image = System.IO.File.OpenRead(path);
 
             string mimeType;
-            if (path.EndsWith("jpg") || path.EndsWith("jpeg"))
+            if (path.EndsWith("jpg", StringComparison.InvariantCultureIgnoreCase) ||
+                path.EndsWith("jpeg", StringComparison.InvariantCultureIgnoreCase))
+            {
                 mimeType = "image/jpeg";
+            }
+            else if (path.EndsWith("svg", StringComparison.InvariantCultureIgnoreCase))
+            {
+                mimeType = "image/svg+xml";
+            }
             else
+            {
                 mimeType = $"image/{Path.GetExtension(path).Replace(".", string.Empty)}";
+            }
+
+            Console.WriteLine("iconpath: " + path + ", mimetype:" + mimeType);
 
             return File(image, mimeType);
           }

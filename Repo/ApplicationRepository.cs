@@ -42,10 +42,11 @@ namespace Orchestrator.Repo
             ApplicationManifest descriptor = ParseDescriptor(stream);
             //store in /var/storage/repo unzipped
             string installDirectory = Path.Combine(m_Settings.RootPath, descriptor.ApplicationId);
-            Directory.CreateDirectory(installDirectory);
+            if(!Directory.Exists(installDirectory))
+                Directory.CreateDirectory(installDirectory);
             archive.ExtractToDirectory(installDirectory);
-            string workingDirectory = Path.Combine(installDirectory, descriptor.RelativeWorkingDirectory);
-            return new RepoApplicationDescriptor{ Manifest = descriptor, WorkingDirectory = workingDirectory};
+            string manifestPath = Directory.GetFiles(installDirectory, $"*{m_Settings.ManifestExtension}", SearchOption.AllDirectories).First();
+            return ParseDescriptor(manifestPath);
         }
         private RepoApplicationDescriptor ParseDescriptor(string path)
         {
@@ -55,7 +56,8 @@ namespace Orchestrator.Repo
                 return new RepoApplicationDescriptor
                 {
                     Manifest = descriptor,
-                    WorkingDirectory = Path.GetDirectoryName(Path.GetFullPath(Path.Combine(Path.GetDirectoryName(path), descriptor.RelativeWorkingDirectory)))
+                    WorkingDirectory = Path.GetDirectoryName(Path.GetFullPath(Path.Combine(Path.GetDirectoryName(path), descriptor.RelativeWorkingDirectory))),
+                    ManifestPath = Path.GetDirectoryName(path)
                 };
             }
         }

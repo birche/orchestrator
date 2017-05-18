@@ -11,5 +11,7 @@ namespace Orchestrator.Kernel
         public ApplicationManifest Manifest { get; set; }
         public string WorkingDirectory { get; set; }
 
+        public string ManifestPath { get; set; }
+
     }
 }

@@ -54,6 +54,7 @@ namespace Orchestrator
             if (env.IsDevelopment())
                 app.UseDeveloperExceptionPage();
 
+            app.UseDefaultFiles();
             app.UseStaticFiles();
             app.UseMvc();
 
