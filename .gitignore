@@ -5,3 +5,4 @@
 **/.vs
 packages/*
 .vscode/*
+wwwroot/*
