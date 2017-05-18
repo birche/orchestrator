@@ -21,11 +21,13 @@ namespace Orchestrator.Kernel
 
         public static (Task, Process) StartProcess(ProcessStartInfo startInfo)
         {
+            Console.WriteLine("Before process start");
             Process process = Process.Start(startInfo);
-
+            Console.WriteLine("After process start");
             Task t = Task.Run(async () =>
             {
                 string moduleName = process.MainModule.ModuleName;
+                Console.WriteLine("Module name: " + moduleName);
                 int id = process.Id;
 
                 while (true)

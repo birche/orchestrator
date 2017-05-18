@@ -22,10 +22,12 @@ namespace Orchestrator.Repo
 
         public string RootPath => m_Settings.RootPath;
 
+        public string ManifestExtension => m_Settings.ManifestExtension;
+
         public RepoApplicationDescriptor[] GetAllApplications()
         {
             Console.WriteLine("Searching for applications...");
-            string[] applicationDescriptorFiles = Directory.GetFiles(RootPath, $"*{m_Settings.AppExtension}", SearchOption.AllDirectories);
+            string[] applicationDescriptorFiles = Directory.GetFiles(RootPath, $"*{m_Settings.ManifestExtension}", SearchOption.AllDirectories);
 
             RepoApplicationDescriptor[] apps =
                 applicationDescriptorFiles.Select(ParseDescriptor).ToArray();
@@ -53,7 +55,7 @@ namespace Orchestrator.Repo
                 return new RepoApplicationDescriptor
                 {
                     Manifest = descriptor,
-                    WorkingDirectory = Path.Combine(Path.GetDirectoryName(path), descriptor.RelativeWorkingDirectory)
+                    WorkingDirectory = Path.GetDirectoryName(Path.GetFullPath(Path.Combine(Path.GetDirectoryName(path), descriptor.RelativeWorkingDirectory)))
                 };
             }
         }

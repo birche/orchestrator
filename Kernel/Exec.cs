@@ -47,7 +47,7 @@ namespace Orchestrator.Kernel
 
         public void DeployAndInstall(ZipArchive archive)
         {
-            ZipArchiveEntry archiveEntry = archive.Entries.FirstOrDefault(item => Path.GetExtension(item.Name).EndsWith(".symphony", StringComparison.InvariantCultureIgnoreCase));
+            ZipArchiveEntry archiveEntry = archive.Entries.FirstOrDefault(item => Path.GetExtension(item.Name).EndsWith(m_ApplicationRepository.ManifestExtension, StringComparison.InvariantCultureIgnoreCase));
             if (archiveEntry == null)
                 throw new Exception("No app descriptor");
             ;
@@ -69,6 +69,7 @@ namespace Orchestrator.Kernel
         {
             var processStartInfo = new ProcessStartInfo(repoApplicationDescriptor.Manifest.CommandLine, string.Join(" ", repoApplicationDescriptor.Manifest.CommandLineParams));
             processStartInfo.WorkingDirectory = repoApplicationDescriptor.WorkingDirectory;
+            processStartInfo.UseShellExecute = true;
             return processStartInfo;
         }
 
@@ -104,27 +105,41 @@ namespace Orchestrator.Kernel
             }
             Console.WriteLine($"Starting {applicationId}..");
             RepoApplicationDescriptor descriptor = GetApplicationDescriptor(applicationId);
+            Console.WriteLine($"Generate process start info for {applicationId}...");
             ProcessStartInfo pInfo = GenerateProcessStartInfo(descriptor);
-            var (task, process) = ProcessHandler.StartProcess(pInfo);
-            process.EnableRaisingEvents = true;
-            string moduleName = process.MainModule.ModuleName;
-            var aInfo = new ApplicationInfo {Descriptor = descriptor, Process = process, Task = task};
-            m_RunningApplications.TryAdd(descriptor.Manifest.ApplicationId, aInfo);
-
-            process.Exited += (_, __) =>
+            Console.WriteLine("Executing: WorkingDirectory: " + pInfo.WorkingDirectory+ ", process: " + pInfo.FileName + " " + pInfo.Arguments);
+            try
             {
-                ApplicationInfo app;
-                Console.WriteLine(moduleName + " exited at " + process.ExitTime);
-                m_RunningApplications.TryRemove(applicationId, out app);
-                if (!app.RequestStop && descriptor.Manifest.RestartOnUnexpectedDeath)
+                var (task, process) = ProcessHandler.StartProcess(pInfo);
+                if (process.HasExited)
                 {
-                    Start(applicationId);
+                    Console.WriteLine("process exited with error code " + process.ExitCode);
                 }
-            };
+                process.EnableRaisingEvents = true;
+                string moduleName = process.MainModule.ModuleName;
+                var aInfo = new ApplicationInfo {Descriptor = descriptor, Process = process, Task = task};
+                m_RunningApplications.TryAdd(descriptor.Manifest.ApplicationId, aInfo);
+
+                process.Exited += (_, __) =>
+                {
+                    ApplicationInfo app;
+                    Console.WriteLine(moduleName + " exited at " + process.ExitTime);
+                    m_RunningApplications.TryRemove(applicationId, out app);
+                    if (!app.RequestStop && descriptor.Manifest.RestartOnUnexpectedDeath)
+                    {
+                        Start(applicationId);
+                    }
+                };
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.GetType().Name);
+                Console.WriteLine(e.Message);
+            }
 
         }
 
-        
+
         internal ApplicationInfo Stop(string applicationId)
         {
             ApplicationInfo aInfo = GetRunningApplicationInfo(applicationId);
@@ -150,7 +165,7 @@ namespace Orchestrator.Kernel
         }
 
         public ApplicationStatus[] GetStatus() => 
-            m_InstalledApplications.Select(item => new ApplicationStatus {ApplicationManifest = item.Value.Manifest, IsRunning = IsAlive(item.Key)}).ToArray();
+            m_InstalledApplications.Select(item => new ApplicationStatus {ApplicationManifest = item.Value.Manifest, IsRunning = IsAlive(item.Key), WorkingDirectory = item.Value.WorkingDirectory}).ToArray();
 
         public bool SupportsIsReadyUri(string applicationId) => GetApplicationDescriptor(applicationId)?.Manifest.SupportsIsReadyUri ?? false;
 

@@ -4,5 +4,7 @@ namespace Orchestrator.Kernel
     {
         public ApplicationManifest ApplicationManifest { get; set; }
         public bool IsRunning { get; set; }
+
+        public string WorkingDirectory { get; set; }
     }
 }
