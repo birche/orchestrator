@@ -38,7 +38,7 @@ namespace Orchestrator
                         .AllowAnyMethod()
                         .AllowAnyHeader());
             });
-
+            
             services.AddMvc();
             services.AddOptions();
             services.Configure<RepoSettings>(Configuration.GetSection(nameof(RepoSettings)));
@@ -54,6 +54,7 @@ namespace Orchestrator
             if (env.IsDevelopment())
                 app.UseDeveloperExceptionPage();
 
+            app.UseStaticFiles();
             app.UseMvc();
 
 //#if DEBUG
