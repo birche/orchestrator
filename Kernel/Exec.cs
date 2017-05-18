@@ -21,7 +21,6 @@ namespace Orchestrator.Kernel
 
         public Exec(IApplicationRepository repo)
         {
-
             m_ApplicationRepository = repo;
             RepoApplicationDescriptor[] installedApplications = m_ApplicationRepository.GetAllApplications();
 

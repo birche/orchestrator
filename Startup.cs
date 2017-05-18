@@ -54,14 +54,17 @@ namespace Orchestrator
             if (env.IsDevelopment())
                 app.UseDeveloperExceptionPage();
 
+            app.ApplicationServices.GetService<Exec>();
+
             app.UseDefaultFiles();
             app.UseStaticFiles();
             app.UseMvc();
+            
 
-//#if DEBUG
-//            app.UseSwagger();
-//            app.UseSwaggerUi();
-//#endif
+            //#if DEBUG
+            //            app.UseSwagger();
+            //            app.UseSwaggerUi();
+            //#endif
         }
 
         private void ConfigureSwagger(IServiceCollection services)
