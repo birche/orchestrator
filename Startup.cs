@@ -56,9 +56,10 @@ namespace Orchestrator
 
             app.ApplicationServices.GetService<Exec>();
 
+            app.UseMvc();
             app.UseDefaultFiles();
             app.UseStaticFiles();
-            app.UseMvc();
+            
             
 
             //#if DEBUG

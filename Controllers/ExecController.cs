@@ -89,8 +89,9 @@ namespace Orchestrator.Controllers
             return response.StatusCode == HttpStatusCode.OK;
         }
 
+        [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
         [HttpGet(nameof(Icon))]
-        public async Task<IActionResult> Icon(string applicationId)
+        public async Task<IActionResult> Icon(string applicationId, string random)
         { 
 
             string path = m_Exec.GetIconPath(applicationId);
