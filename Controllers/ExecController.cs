@@ -82,6 +82,7 @@ namespace Orchestrator.Controllers
         [HttpGet(nameof(Stop))]
         public void Stop(string applicationId)
         {
+            Console.WriteLine("Stopping " + applicationId);
             m_Exec.Stop(applicationId);
         }
         

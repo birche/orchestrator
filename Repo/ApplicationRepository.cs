@@ -7,6 +7,7 @@ using System.Xml.Serialization;
 using Microsoft.Extensions.Options;
 using System.Collections.Generic;
 using System.IO.Compression;
+using System.Net;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Orchestrator.Repo
@@ -65,13 +66,10 @@ namespace Orchestrator.Repo
         private ApplicationManifest ParseDescriptor(Stream stream)
         {
             ApplicationManifest descriptor = (ApplicationManifest)serializer.Deserialize(stream);
-            descriptor.CommandLine = descriptor.CommandLine.Replace("%dotnet%", m_Settings.DotnetCliPath, StringComparison.InvariantCultureIgnoreCase);
+            descriptor.CommandLine = descriptor.CommandLine.Replace("$(dotnet)", m_Settings.DotnetCliPath, StringComparison.InvariantCultureIgnoreCase);
+            descriptor.StartPageUri = descriptor.StartPageUri.Replace("$(host-ip)", m_Settings.HostIp, StringComparison.InvariantCultureIgnoreCase);
+            descriptor.IsReadyUri = "http://localhost:5000" + descriptor.IsReadyUri;
             return descriptor;
         } 
-
-     
-
     }
-
-
  }
